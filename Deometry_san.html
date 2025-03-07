@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVidos</title>
+    <style>
+        /* Устанавливаем шрифт Comic Sans для всего сайта */
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #00BFFF;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #05bfff;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .upload-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .video-container .video-item {
+            width: 320px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .video-container .video-item video {
+            width: 100%;
+            border-bottom: 2px solid #f4f4f9;
+        }
+
+        .video-container .video-item h3 {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+        }
+
+        .video-container .video-item p {
+            padding: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer a {
+            color: #ff9800;
+            text-decoration: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .button-group button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #uploadContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>HVidos</h1>
+    </header>
+
+    <!-- Здесь будет кнопка и форма для загрузки видео -->
+    <div class="upload-container" id="uploadContainer">
+        <h2>Загрузите видео</h2>
+        <input type="file" id="videoFile" accept="video/*">
+        <button onclick="uploadVideo()">Загрузить видео</button>
+    </div>
+
+    <!-- Контейнер для отображения всех видео -->
+    <div class="video-container" id="videoContainer">
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 HVidos. Все права защищены.</p>
+    </div>
+
+    <script>
+        // Функция для отображения видео на странице
+        function displayVideos() {
+            const container = document.getElementById('videoContainer');
+            container.innerHTML = ''; // Очистить контейнер перед добавлением новых видео
+
+            let videos = JSON.parse(localStorage.getItem('videos')) || [];
+
+            videos.forEach((video, index) => {
+                const videoItem = document.createElement('div');
+                videoItem.classList.add('video-item');
+
+                videoItem.innerHTML = `
+                    <video controls>
+                        <source src="${video.url}" type="video/mp4">
+                        Ваш браузер не поддерживает воспроизведение видео.
+                    </video>
+                    <h3>${video.title}</h3>  <!-- Отображение названия видео -->
+                    <p>Просмотров: ${video.views}</p>  <!-- Отображение количества просмотров -->
+                    <div class="button-group">
+                        <button onclick="likeVideo(${index})">Лайк (${video.likes})</button>
+                        <button onclick="dislikeVideo(${index})">Дизлайк (${video.dislikes})</button>
+                    </div>
+                    <button class="delete-btn" onclick="deleteVideo(${index})">Удалить</button>
+                `;
+
+                container.appendChild(videoItem);
+            });
+        }
+
+        // Функция для загрузки видео
+        function uploadVideo() {
+            const videoFile = document.getElementById('videoFile').files[0];
+            const videoTitle = prompt("Введите название видео:");
+
+            if (videoFile && videoTitle) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    let videos = JSON.parse(localStorage.getItem('videos')) || [];
+
+                    const videoData = {
+                        title: videoTitle,
+                        url: event.target.result,
+                        likes: 0,
+                        dislikes: 0,
+                        views: 0
+                    };
+
+                    videos.push(videoData);
+                    localStorage.setItem('videos', JSON.stringify(videos));
+                    displayVideos();
+                };
+                reader.readAsDataURL(videoFile);
+            }
+        }
+
+        // Функция для удаления видео
+        function deleteVideo(index) {
+            let videos = JSON.parse(localStorage.getItem('videos')) || [];
+            videos.splice(index, 1);
+            localStorage.setItem('videos', JSON.stringify(videos));
+            displayVideos();
+        }
+
+        // Функция для лайкания видео
+        function likeVideo(index) {
+            let videos = JSON.parse(localStorage.getItem('videos')) || [];
+            videos[index].likes++;
+            localStorage.setItem('videos', JSON.stringify(videos));
+            displayVideos();
+        }
+
+        // Функция для дизлайкания видео
+        function dislikeVideo(index) {
+            let videos = JSON.parse(localStorage.getItem('videos')) || [];
+            videos[index].dislikes++;
+            localStorage.setItem('videos', JSON.stringify(videos));
+            displayVideos();
+        }
+
+        // Загрузка всех видео при загрузке страницы
+        window.onload = displayVideos;
+    </script>
+
+</body>
+</html>
